@@ -119,18 +119,26 @@ console.log('===============================');
 // Middleware
 app.use(cors({
   origin: '*', // Permite solicitudes desde cualquier origen
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-CSRF-Token', 'Accept', 'Accept-Version', 'Content-Length', 'Content-MD5', 'Date', 'X-Api-Version'],
   credentials: true,
-  maxAge: 86400 // 24 horas en segundos
+  maxAge: 86400, // 24 horas en segundos
+  preflightContinue: false
 }));
+
+// Configurar respuestas CORS para todas las rutas
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, X-CSRF-Token, Accept, Accept-Version, Content-Length, Content-MD5, Date, X-Api-Version');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  next();
+});
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('.')); // Sirve archivos estáticos desde la raíz
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-// Añadir middleware específico para CORS preflight
-app.options('*', cors());
 
 // Configuración de la base de datos SQL Server
 const dbConfig = {
@@ -965,10 +973,10 @@ app.get('/', (req, res) => {
 
 // Iniciar el servidor
 const server = app.listen(PORT, () => {
-  console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
+  console.log(`🚀 Servidor Express iniciado en puerto ${PORT}`);
 }).on('error', (err) => {
   console.error('Error al iniciar el servidor:', err.message);
 });
 
-// Exportar la app para Vercel
+// Exportar la app para uso en funciones de Netlify
 module.exports = app; 
