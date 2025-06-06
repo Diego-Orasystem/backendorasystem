@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Administrativo | OraSystem</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <!-- ApexCharts CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/apexcharts@3.44.0/dist/apexcharts.min.css">
+</head>
+<body>
+    <div class="login-container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background-color: #f0f4f8; padding: 20px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 8px;">
+        <h2 style="color: #333; margin-bottom: 20px;">Iniciar Sesión</h2>
+        <form id="login-form" style="width: 100%; max-width: 400px; background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label for="username" style="display: block; margin-bottom: 5px; color: #555;">Usuario:</label>
+                <input type="text" id="username" name="username" required style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
+            </div>
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label for="password" style="display: block; margin-bottom: 5px; color: #555;">Contraseña:</label>
+                <input type="password" id="password" name="password" required style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
+            </div>
+            <button type="submit" style="width: 100%; padding: 10px; background-color: #007bff; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 16px;">Ingresar</button>
+        </form>
+        <div id="login-error" class="error-message" style="display: none; margin-top: 10px; color: #d9534f;">Credenciales incorrectas</div>
+    </div>
+
+    <script>
+        document.getElementById('login-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const loginError = document.getElementById('login-error');
+
+            if (username === 'Orasystem' && password === 'Orasystem.2025') {
+                document.querySelector('.admin-container').style.display = 'block';
+                document.querySelector('.login-container').style.display = 'none';
+            } else {
+                loginError.style.display = 'block';
+            }
+        });
+    </script>
+    <div class="admin-container" style="display: none;">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <h2><span class="ora-text">ORA</span>SYSTEM</h2>
+                <p class="logo-tagline">Protegiendo tus datos, asegurando tu futuro</p>
+            </div>
+            <nav class="sidebar-menu">
+                <ul>
+                    <li class="active" data-section="formularios"><a href="#"><i class="fas fa-table"></i> Formularios</a></li>
+                    <li data-section="postulaciones"><a href="#"><i class="fas fa-user-tie"></i> Postulaciones</a></li>
+                    <li data-section="estadisticas"><a href="#"><i class="fas fa-chart-bar"></i> Estadísticas</a></li>
+                    <li data-section="configuracion"><a href="#"><i class="fas fa-cog"></i> Configuración</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Contenido principal -->
+        <main class="main-content">
+            <header class="top-header">
+                <div class="header-search">
+                    <input type="text" id="search-input" placeholder="Buscar...">
+                    <button id="search-btn"><i class="fas fa-search"></i></button>
+                </div>
+                <div class="header-actions">
+                    <button id="refresh-btn"><i class="fas fa-sync-alt"></i> Actualizar</button>
+                </div>
+            </header>
+
+            <!-- Panel de Formularios -->
+            <div class="content-panel active" id="formularios-panel">
+                <div class="panel-header">
+                    <h1>Datos de Formularios</h1>
+                    <div class="panel-actions">
+                        <select id="filter-select">
+                            <option value="all">Todos los registros</option>
+                            <option value="today">Hoy</option>
+                            <option value="week">Esta semana</option>
+                            <option value="month">Este mes</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="loading" id="loading">
+                    <i class="fas fa-spinner fa-spin"></i> Cargando datos...
+                </div>
+                
+                <div class="error-message" id="error-message"></div>
+                
+                <div class="table-container">
+                    <table id="formularios-table">
+                        <thead>
+                            <tr id="table-headers">
+                                <!-- Los encabezados se generarán dinámicamente -->
+                            </tr>
+                        </thead>
+                        <tbody id="table-body">
+                            <!-- Los datos se cargarán aquí -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pagination">
+                    <button id="prev-page"><i class="fas fa-chevron-left"></i></button>
+                    <span id="page-info">Página 1 de 1</span>
+                    <button id="next-page"><i class="fas fa-chevron-right"></i></button>
+                </div>
+            </div>
+            
+            <!-- Panel de Postulaciones -->
+            <div class="content-panel" id="postulaciones-panel">
+                <div class="panel-header">
+                    <h1>Postulaciones Laborales</h1>
+                    <div class="panel-actions">
+                        <select id="postulaciones-filter-select">
+                            <option value="all">Todas las postulaciones</option>
+                            <option value="today">Hoy</option>
+                            <option value="week">Esta semana</option>
+                            <option value="month">Este mes</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="loading" id="postulaciones-loading">
+                    <i class="fas fa-spinner fa-spin"></i> Cargando postulaciones...
+                </div>
+                
+                <div class="error-message" id="postulaciones-error"></div>
+                
+                <div class="table-container">
+                    <table id="postulaciones-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>RUT</th>
+                                <th>Cargo</th>
+                                <th>Email</th>
+                                <th>Fecha</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="postulaciones-table-body">
+                            <!-- Los datos se cargarán aquí -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pagination">
+                    <button id="postulaciones-prev-page"><i class="fas fa-chevron-left"></i></button>
+                    <span id="postulaciones-page-info">Página 1 de 1</span>
+                    <button id="postulaciones-next-page"><i class="fas fa-chevron-right"></i></button>
+                </div>
+            </div>
+
+            <!-- Panel de Estadísticas -->
+            <div class="content-panel" id="estadisticas-panel">
+                <div class="panel-header">
+                    <h1>Estadísticas de Formularios</h1>
+                    <div class="panel-actions">
+                        <select id="stats-period-select">
+                            <option value="week">Últimos 7 días</option>
+                            <option value="month">Últimos 30 días</option>
+                            <option value="year">Último año</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="loading" id="stats-loading">
+                    <i class="fas fa-spinner fa-spin"></i> Cargando estadísticas...
+                </div>
+                
+                <div class="error-message" id="stats-error"></div>
+                
+                <div class="stats-container">
+                    <!-- Tarjetas de resumen -->
+                    <div class="stats-summary">
+                        <div class="stat-card">
+                            <div class="stat-icon"><i class="fas fa-file-alt"></i></div>
+                            <div class="stat-details">
+                                <h3>Total Registros</h3>
+                                <p id="stat-total-registros">0</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon"><i class="fas fa-calendar-day"></i></div>
+                            <div class="stat-details">
+                                <h3>Hoy</h3>
+                                <p id="stat-hoy">0</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon"><i class="fas fa-calendar-week"></i></div>
+                            <div class="stat-details">
+                                <h3>Esta Semana</h3>
+                                <p id="stat-semana">0</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
+                            <div class="stat-details">
+                                <h3>Crecimiento</h3>
+                                <p id="stat-crecimiento">0%</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Gráficos -->
+                    <div class="charts-row">
+                        <div class="chart-container">
+                            <h3>Registros por Período</h3>
+                            <div id="chart-timeline"></div>
+                        </div>
+                        <div class="chart-container">
+                            <h3>Distribución por Categoría</h3>
+                            <div id="chart-donut"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="charts-row">
+                        <div class="chart-container full-width">
+                            <h3>Tendencia de Registros</h3>
+                            <div id="chart-area"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel de Configuración -->
+            <div class="content-panel" id="configuracion-panel">
+                <div class="panel-header">
+                    <h1>Configuración</h1>
+                </div>
+                <div class="config-container">
+                    <p>Sección en desarrollo.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Modal para ver detalles de postulación -->
+    <div class="modal" id="postulacion-modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Detalles de la Postulación</h2>
+            <div id="postulacion-modal-content">
+                <!-- El contenido se cargará dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Pie de página -->
+    <footer class="footer">
+        <p>© 2023 OraSystem - Protegiendo tus datos, asegurando tu futuro</p>
+    </footer>
+
+    <!-- ApexCharts JS -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.44.0/dist/apexcharts.min.js"></script>
+    <script src="script.js"></script>
+    <script>
+        // Código para cargar y manejar las postulaciones
+        document.addEventListener('DOMContentLoaded', function() {
+            // Variables para paginación de postulaciones
+            let postulacionesData = [];
+            let postulacionesCurrentPage = 1;
+            let postulacionesItemsPerPage = 10;
+            let postulacionesTotalPages = 1;
+            
+            // Función para cargar las postulaciones
+            function cargarPostulaciones() {
+                const loadingElement = document.getElementById('postulaciones-loading');
+                const errorElement = document.getElementById('postulaciones-error');
+                
+                loadingElement.style.display = 'flex';
+                errorElement.textContent = '';
+                
+                fetch('https://backend-orasystem-cyo2.vercel.app/api/postulaciones')
+                    .then(response => response.json())
+                    .then(data => {
+                        loadingElement.style.display = 'none';
+                        
+                        if (data.success && data.data) {
+                            postulacionesData = data.data;
+                            postulacionesTotalPages = Math.ceil(postulacionesData.length / postulacionesItemsPerPage);
+                            mostrarPostulaciones(postulacionesCurrentPage);
+                            actualizarPaginacionPostulaciones();
+                        } else {
+                            errorElement.textContent = 'No se pudieron cargar las postulaciones';
+                        }
+                    })
+                    .catch(error => {
+                        loadingElement.style.display = 'none';
+                        errorElement.textContent = 'Error al cargar las postulaciones: ' + error.message;
+                        console.error('Error al cargar postulaciones:', error);
+                    });
+            }
+            
+            // Función para mostrar las postulaciones en la tabla
+            function mostrarPostulaciones(page) {
+                const tableBody = document.getElementById('postulaciones-table-body');
+                tableBody.innerHTML = '';
+                
+                if (postulacionesData.length === 0) {
+                    const row = document.createElement('tr');
+                    row.innerHTML = '<td colspan="7" style="text-align: center;">No hay postulaciones disponibles</td>';
+                    tableBody.appendChild(row);
+                    return;
+                }
+                
+                // Calcular índices para la paginación
+                const startIndex = (page - 1) * postulacionesItemsPerPage;
+                const endIndex = Math.min(startIndex + postulacionesItemsPerPage, postulacionesData.length);
+                
+                // Mostrar los datos de la página actual
+                for (let i = startIndex; i < endIndex; i++) {
+                    const postulacion = postulacionesData[i];
+                    const row = document.createElement('tr');
+                    
+                    // Formatear fecha
+                    const fecha = new Date(postulacion.FechaRegistro);
+                    const fechaFormateada = fecha.toLocaleDateString('es-ES') + ' ' + 
+                                           fecha.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+                    
+                    row.innerHTML = `
+                        <td>${postulacion.Id}</td>
+                        <td>${postulacion.Nombre}</td>
+                        <td>${postulacion.RUT}</td>
+                        <td>${postulacion.Cargo}</td>
+                        <td>${postulacion.Email}</td>
+                        <td>${fechaFormateada}</td>
+                        <td>
+                            <button class="action-btn view-btn" data-id="${postulacion.Id}">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </td>
+                    `;
+                    
+                    tableBody.appendChild(row);
+                }
+                
+                // Agregar eventos a los botones de ver detalles
+                document.querySelectorAll('.view-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const id = parseInt(this.getAttribute('data-id'));
+                        mostrarDetallePostulacion(id);
+                    });
+                });
+            }
+            
+            // Función para actualizar la información de paginación
+            function actualizarPaginacionPostulaciones() {
+                document.getElementById('postulaciones-page-info').textContent = `Página ${postulacionesCurrentPage} de ${postulacionesTotalPages || 1}`;
+                
+                // Habilitar/deshabilitar botones de navegación
+                document.getElementById('postulaciones-prev-page').disabled = postulacionesCurrentPage === 1;
+                document.getElementById('postulaciones-next-page').disabled = postulacionesCurrentPage === postulacionesTotalPages || postulacionesTotalPages === 0;
+            }
+            
+            // Función para mostrar el detalle de una postulación
+            function mostrarDetallePostulacion(id) {
+                const postulacion = postulacionesData.find(p => p.Id === id);
+                if (!postulacion) return;
+                
+                const modal = document.getElementById('postulacion-modal');
+                const modalContent = document.getElementById('postulacion-modal-content');
+                
+                // Formatear fecha
+                const fecha = new Date(postulacion.FechaRegistro);
+                const fechaFormateada = fecha.toLocaleDateString('es-ES') + ' ' + 
+                                       fecha.toLocaleTimeString('es-ES');
+                
+                // Preparar enlace de CV si existe
+                let cvHtml = '<p><strong>CV:</strong> No adjuntado</p>';
+                if (postulacion.RutaCV && postulacion.NombreArchivoOriginal) {
+                    cvHtml = `
+                        <p>
+                            <strong>CV:</strong> 
+                            <a href="https://backend-orasystem-cyo2.vercel.app/${postulacion.RutaCV}" target="_blank" class="cv-link">
+                                ${postulacion.NombreArchivoOriginal}
+                            </a>
+                        </p>
+                    `;
+                }
+                
+                modalContent.innerHTML = `
+                    <div class="detail-section">
+                        <div class="detail-row">
+                            <div class="detail-column">
+                                <p><strong>ID:</strong> ${postulacion.Id}</p>
+                                <p><strong>Nombre:</strong> ${postulacion.Nombre}</p>
+                                <p><strong>RUT:</strong> ${postulacion.RUT}</p>
+                                <p><strong>Email:</strong> ${postulacion.Email}</p>
+                                <p><strong>Teléfono:</strong> ${postulacion.Telefono || 'No proporcionado'}</p>
+                            </div>
+                            <div class="detail-column">
+                                <p><strong>Cargo:</strong> ${postulacion.Cargo}</p>
+                                <p><strong>Fecha:</strong> ${fechaFormateada}</p>
+                                ${cvHtml}
+                            </div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-full-width">
+                                <p><strong>Interés en Orasystem:</strong></p>
+                                <div class="detail-text-box">
+                                    ${postulacion.Interes.replace(/\n/g, '<br>')}
+                                </div>
+                            </div>
+                        </div>
+                        ${postulacion.Mensaje ? `
+                        <div class="detail-row">
+                            <div class="detail-full-width">
+                                <p><strong>Mensaje adicional:</strong></p>
+                                <div class="detail-text-box">
+                                    ${postulacion.Mensaje.replace(/\n/g, '<br>')}
+                                </div>
+                            </div>
+                        </div>
+                        ` : ''}
+                    </div>
+                `;
+                
+                modal.style.display = 'block';
+            }
+            
+            // Eventos para la paginación de postulaciones
+            document.getElementById('postulaciones-prev-page').addEventListener('click', function() {
+                if (postulacionesCurrentPage > 1) {
+                    postulacionesCurrentPage--;
+                    mostrarPostulaciones(postulacionesCurrentPage);
+                    actualizarPaginacionPostulaciones();
+                }
+            });
+            
+            document.getElementById('postulaciones-next-page').addEventListener('click', function() {
+                if (postulacionesCurrentPage < postulacionesTotalPages) {
+                    postulacionesCurrentPage++;
+                    mostrarPostulaciones(postulacionesCurrentPage);
+                    actualizarPaginacionPostulaciones();
+                }
+            });
+            
+            // Cerrar modal
+            document.querySelector('.close-modal').addEventListener('click', function() {
+                document.getElementById('postulacion-modal').style.display = 'none';
+            });
+            
+            // Cerrar modal al hacer clic fuera del contenido
+            window.addEventListener('click', function(event) {
+                const modal = document.getElementById('postulacion-modal');
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+            
+            // Navegación entre secciones
+            document.querySelectorAll('.sidebar-menu li').forEach(item => {
+                item.addEventListener('click', function() {
+                    // Remover clase activa de todos los elementos
+                    document.querySelectorAll('.sidebar-menu li').forEach(li => li.classList.remove('active'));
+                    document.querySelectorAll('.content-panel').forEach(panel => panel.classList.remove('active'));
+                    
+                    // Agregar clase activa al elemento clickeado
+                    this.classList.add('active');
+                    
+                    // Mostrar el panel correspondiente
+                    const sectionId = this.getAttribute('data-section');
+                    document.getElementById(`${sectionId}-panel`).classList.add('active');
+                    
+                    // Cargar datos si es la sección de postulaciones
+                    if (sectionId === 'postulaciones') {
+                        cargarPostulaciones();
+                    }
+                });
+            });
+            
+            // Botón de actualizar
+            document.getElementById('refresh-btn').addEventListener('click', function() {
+                const activePanel = document.querySelector('.content-panel.active');
+                if (activePanel.id === 'postulaciones-panel') {
+                    cargarPostulaciones();
+                }
+            });
+        });
+    </script>
+</body>
+</html> 

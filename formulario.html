@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Formulario de Contacto</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .form-container {
+      background-color: #f9f9f9;
+      padding: 20px;
+      border-radius: 5px;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    .form-row {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+    .form-row > div {
+      flex: 1;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 16px;
+    }
+    textarea {
+      min-height: 120px;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .status-message {
+      margin-top: 15px;
+      padding: 10px;
+      border-radius: 4px;
+    }
+    .success {
+      background-color: #d4edda;
+      color: #155724;
+    }
+    .error {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+  </style>
+</head>
+<body>
+  <h1>Formulario de Contacto</h1>
+  
+  <div class="form-container">
+    <form id="contactForm">
+      <div class="form-row">
+        <div class="form-group">
+          <input type="text" id="name" name="name" placeholder="Nombre" required>
+        </div>
+        <div class="form-group">
+          <input type="email" id="email" name="email" placeholder="Correo electrónico" required>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <textarea id="message" name="message" placeholder="Mensaje" required></textarea>
+      </div>
+      
+      <div class="form-group">
+        <button type="submit">Enviar</button>
+      </div>
+    </form>
+    <div id="statusMessage" class="status-message" style="display: none;"></div>
+  </div>
+
+  <script>
+    document.getElementById('contactForm').addEventListener('submit', async function(event) {
+      event.preventDefault();
+      
+      const statusMessage = document.getElementById('statusMessage');
+      statusMessage.style.display = 'none';
+      statusMessage.textContent = '';
+      statusMessage.className = 'status-message';
+      
+      const formData = {
+        name: document.getElementById('name').value.trim(),
+        email: document.getElementById('email').value.trim(),
+        message: document.getElementById('message').value.trim()
+      };
+      
+      try {
+        const response = await fetch('http://localhost:3000/api/formulario', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(formData)
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+          statusMessage.textContent = '¡Mensaje enviado correctamente!';
+          statusMessage.classList.add('success');
+          document.getElementById('contactForm').reset();
+        } else {
+          statusMessage.textContent = result.message || 'Error al enviar el formulario';
+          statusMessage.classList.add('error');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        statusMessage.textContent = 'Error de conexión. Por favor, inténtelo más tarde.';
+        statusMessage.classList.add('error');
+      }
+      
+      statusMessage.style.display = 'block';
+    });
+  </script>
+</body>
+</html> 

@@ -1,0 +1,222 @@
+<!-- Modal oculto para "Trabaja con Nosotros" -->
+<style>
+    #modal-trabaja-nosotros {
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        left: 0;
+        top: 0;
+        width: 100vw;
+        height: 100vh;
+        overflow: auto;
+        background: rgba(0,0,0,0.45);
+    }
+    #modal-trabaja-nosotros .modal-content {
+        background: #fff;
+        margin: 60px auto;
+        padding: 32px 28px;
+        border-radius: 16px;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+        max-width: 520px;
+        width: 90%;
+        position: relative;
+    }
+    #modal-trabaja-nosotros .close-modal {
+        position: absolute;
+        top: 16px;
+        right: 18px;
+        font-size: 2rem;
+        color: #d32f2f;
+        cursor: pointer;
+        border: none;
+        background: none;
+    }
+    /* Estilos adicionales para mensajes de error */
+    .error-mensaje {
+        color: #d32f2f;
+        font-size: 0.85rem;
+        margin-top: 4px;
+    }
+    /* Estilos para el spinner de carga */
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+</style>
+
+<div id="modal-trabaja-nosotros">
+    <div class="modal-content">
+        <button class="close-modal" onclick="document.getElementById('modal-trabaja-nosotros').style.display='none'">&times;</button>
+        <h2 class="elementor-heading-title elementor-size-default" style="font-size:2rem; font-weight:700; margin-bottom: 18px; color:#222;">Trabaja con Nosotros</h2>
+        <form id="trabaja-con-nosotros-form" enctype="multipart/form-data" style="width:100%;">
+            <div style="margin-bottom:18px;">
+                <label for="nombre" style="font-weight:500; color:#444;">Nombre completo <span style="color:#d32f2f;">*</span></label>
+                <input type="text" id="nombre" name="nombre" required 
+                    style="width:100%;padding:12px 14px;margin-top:6px;border:1.5px solid #e0e0e0;border-radius:6px;font-size:1rem;transition:border-color 0.2s;" 
+                    onfocus="this.style.borderColor='#d32f2f'" onblur="this.style.borderColor='#e0e0e0'">
+            </div>
+            <div style="margin-bottom:18px;">
+                <label for="rut" style="font-weight:500; color:#444;">RUT <span style="color:#d32f2f;">*</span></label>
+                <input type="text" id="rut" name="rut" required 
+                    style="width:100%;padding:12px 14px;margin-top:6px;border:1.5px solid #e0e0e0;border-radius:6px;font-size:1rem;transition:border-color 0.2s;" 
+                    onfocus="this.style.borderColor='#d32f2f'" onblur="this.style.borderColor='#e0e0e0'" 
+                    placeholder="12.345.678-9">
+            </div>
+            <div style="margin-bottom:18px;">
+                <label for="email" style="font-weight:500; color:#444;">Correo electrónico <span style="color:#d32f2f;">*</span></label>
+                <input type="email" id="email" name="email" required 
+                    style="width:100%;padding:12px 14px;margin-top:6px;border:1.5px solid #e0e0e0;border-radius:6px;font-size:1rem;transition:border-color 0.2s;" 
+                    onfocus="this.style.borderColor='#d32f2f'" onblur="this.style.borderColor='#e0e0e0'">
+            </div>
+            <div style="margin-bottom:18px;">
+                <label for="telefono" style="font-weight:500; color:#444;">Teléfono</label>
+                <input type="tel" id="telefono" name="telefono" 
+                    style="width:100%;padding:12px 14px;margin-top:6px;border:1.5px solid #e0e0e0;border-radius:6px;font-size:1rem;transition:border-color 0.2s;" 
+                    onfocus="this.style.borderColor='#d32f2f'" onblur="this.style.borderColor='#e0e0e0'">
+            </div>
+            <div style="margin-bottom:18px;">
+                <label for="cargo" style="font-weight:500; color:#444;">Cargo a postular <span style="color:#d32f2f;">*</span></label>
+                <select id="cargo" name="cargo" required
+                    style="width:100%;padding:12px 14px;margin-top:6px;border:1.5px solid #e0e0e0;border-radius:6px;font-size:1rem;transition:border-color 0.2s;background:#fff;">
+                    <option value="" disabled selected>Selecciona un cargo</option>
+                    <option value="Administrador de Bases de Datos Oracle">Administrador de Bases de Datos Oracle</option>
+                    <option value="Consultor ERP Oracle E-Business Suite">Consultor ERP Oracle E-Business Suite</option>
+                    <option value="Administrador de Sistemas Linux/Unix">Administrador de Sistemas Linux/Unix</option>
+                    <option value="Especialista en Middleware">Especialista en Middleware</option>
+                    <option value="Desarrollador PL/SQL">Desarrollador PL/SQL</option>
+                    <option value="Analista de Seguridad Informática">Analista de Seguridad Informática</option>
+                    <option value="Ingeniero de Soporte Técnico">Ingeniero de Soporte Técnico</option>
+                    <option value="Desarrollador Full Stack">Desarrollador Full Stack</option>
+                    <option value="Project Manager">Project Manager</option>
+                    <option value="Especialista en Oracle Cloud Infrastructure">Especialista en Oracle Cloud Infrastructure</option>
+                    <option value="Administrador de Redes">Administrador de Redes</option>
+                    <option value="Consultor de BI">Consultor de BI</option>
+                </select>
+            </div>
+            <div style="margin-bottom:18px;">
+                <label for="interes" style="font-weight:500; color:#444;">¿Por qué quieres trabajar en Orasystem? <span style="color:#d32f2f;">*</span></label>
+                <textarea id="interes" name="interes" rows="4" required
+                    style="width:100%;padding:12px 14px;margin-top:6px;border:1.5px solid #e0e0e0;border-radius:6px;font-size:1rem;resize:vertical;transition:border-color 0.2s;" 
+                    onfocus="this.style.borderColor='#d32f2f'" onblur="this.style.borderColor='#e0e0e0'" 
+                    placeholder="Cuéntanos sobre tu interés en unirte a nuestro equipo..."></textarea>
+            </div>
+            <div style="margin-bottom:18px;">
+                <label for="mensaje" style="font-weight:500; color:#444;">Mensaje</label>
+                <textarea id="mensaje" name="mensaje" rows="4" 
+                    style="width:100%;padding:12px 14px;margin-top:6px;border:1.5px solid #e0e0e0;border-radius:6px;font-size:1rem;resize:vertical;transition:border-color 0.2s;" 
+                    onfocus="this.style.borderColor='#d32f2f'" onblur="this.style.borderColor='#e0e0e0'"></textarea>
+            </div>
+            <div style="margin-bottom:18px;">
+                <label for="cv" style="font-weight:500; color:#444;">Adjuntar CV <span style="font-weight:400; color:#888;">(PDF, máx 5MB)</span></label>
+                <input type="file" id="cv" name="cv" accept=".pdf" 
+                    style="width:100%;padding:10px 0;margin-top:6px;border:none;background:transparent;">
+            </div>
+            <div style="margin-bottom:18px; display: flex; align-items: flex-start;">
+                <input type="checkbox" id="privacidad" name="privacidad" required style="margin-right:8px; accent-color:#d32f2f;">
+                <label for="privacidad" style="font-weight:400; color:#444;">Acepto la <a href="/src/assets/documents/POLITICA DE PRIVACIDAD (1) (2).pdf" target="_blank" style="color:#d32f2f;text-decoration:underline;">política de privacidad</a> <span style="color:#d32f2f;">*</span></label>
+            </div>
+            <button type="submit" style="background:#d32f2f;color:#fff;padding:12px 0;width:100%;border:none;border-radius:6px;font-size:1.1rem;font-weight:600;cursor:pointer;transition:background 0.2s;">ENVIAR</button>
+        </form>
+        <p style="margin-top:18px;font-size:0.97em;color:#666;text-align:center;">Nos pondremos en contacto contigo si tu perfil se ajusta a nuestras necesidades.</p>
+        <div id="form-message" style="margin-top:15px;padding:10px;border-radius:5px;text-align:center;display:none;"></div>
+    </div>
+</div>
+
+<!-- Botón para abrir el modal, puedes colocarlo donde quieras visible -->
+<button id="abrir-modal-trabaja-nosotros" style="display:none;">Trabaja con Nosotros</button>
+
+<!-- Script para manejar el modal -->
+<script>
+// Para mostrar el modal, descomenta la siguiente línea o llama esta función desde algún botón visible
+// document.getElementById('modal-trabaja-nosotros').style.display = 'block';
+
+document.getElementById('abrir-modal-trabaja-nosotros').onclick = function() {
+    document.getElementById('modal-trabaja-nosotros').style.display = 'block';
+};
+
+document.getElementById('trabaja-con-nosotros-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const messageDiv = document.getElementById('form-message');
+    const submitButton = this.querySelector('button[type="submit"]');
+    
+    // Cambiar estado del botón
+    submitButton.disabled = true;
+    submitButton.innerText = 'ENVIANDO...';
+    submitButton.style.backgroundColor = '#999';
+    
+    // Ocultar mensajes previos
+    messageDiv.style.display = 'none';
+    
+    // Manejar el archivo CV correctamente
+    const cvFile = document.getElementById('cv').files[0];
+    if (cvFile) {
+        formData.set('cv', cvFile);
+    }
+    
+    // Convertir checkbox a booleano
+    formData.set('privacidad', document.getElementById('privacidad').checked);
+    
+    fetch('https://backend-orasystem-cyo2.vercel.app/api/postulacion', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            messageDiv.style.backgroundColor = '#e8f5e9';
+            messageDiv.style.color = '#2e7d32';
+            messageDiv.innerHTML = '¡Postulación enviada correctamente! Gracias por tu interés.';
+            document.getElementById('trabaja-con-nosotros-form').reset();
+        } else {
+            messageDiv.style.backgroundColor = '#ffebee';
+            messageDiv.style.color = '#c62828';
+            messageDiv.innerHTML = 'Error: ' + (data.message || 'No se pudo procesar tu solicitud');
+        }
+        messageDiv.style.display = 'block';
+    })
+    .catch(error => {
+        messageDiv.style.backgroundColor = '#ffebee';
+        messageDiv.style.color = '#c62828';
+        messageDiv.innerHTML = 'Error de conexión. Por favor, intenta nuevamente.';
+        messageDiv.style.display = 'block';
+        console.error('Error:', error);
+    })
+    .finally(() => {
+        // Restaurar estado del botón
+        submitButton.disabled = false;
+        submitButton.innerText = 'ENVIAR';
+        submitButton.style.backgroundColor = '#d32f2f';
+    });
+});
+
+// Formatear RUT mientras se escribe
+const inputRut = document.getElementById('rut');
+if (inputRut) {
+    inputRut.addEventListener('input', function() {
+        let valor = this.value.replace(/\./g, '').replace('-', '');
+        
+        // Eliminar caracteres no numéricos ni K
+        valor = valor.replace(/[^0-9kK]/g, '');
+        
+        // Formatear con puntos y guión
+        if (valor.length > 1) {
+            const dv = valor.slice(-1);
+            let cuerpo = valor.slice(0, -1);
+            
+            // Agregar puntos
+            if (cuerpo.length > 3) {
+                cuerpo = cuerpo.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.');
+            }
+            
+            this.value = cuerpo + '-' + dv;
+        } else {
+            this.value = valor;
+        }
+    });
+}
+</script>
+
+<!-- Incluir el script de manejo del formulario -->
+<script src="trabaja-con-nosotros.js"></script> 

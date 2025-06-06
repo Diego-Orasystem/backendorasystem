@@ -1,0 +1,143 @@
+/* Estilos para el modal de detalles de postulación */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+    background-color: #fff;
+    margin: 5% auto;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    width: 80%;
+    max-width: 800px;
+    position: relative;
+}
+
+.close-modal {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 24px;
+    font-weight: bold;
+    color: #aaa;
+    cursor: pointer;
+}
+
+.close-modal:hover {
+    color: #333;
+}
+
+.detail-section {
+    margin-top: 20px;
+}
+
+.detail-row {
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.detail-column {
+    flex: 1;
+    min-width: 250px;
+    padding-right: 20px;
+}
+
+.detail-full-width {
+    width: 100%;
+}
+
+.detail-text-box {
+    background-color: #f9f9f9;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    padding: 15px;
+    margin-top: 5px;
+    white-space: pre-wrap;
+}
+
+.cv-link {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.cv-link:hover {
+    text-decoration: underline;
+}
+
+/* Estilos para botones de acción en la tabla */
+.action-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+    margin: 0 2px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.view-btn {
+    color: #007bff;
+}
+
+.view-btn:hover {
+    background-color: rgba(0, 123, 255, 0.1);
+}
+
+/* Ajustes para la sección de postulaciones */
+#postulaciones-panel .table-container {
+    margin-top: 20px;
+}
+
+#postulaciones-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 200px;
+    color: #666;
+}
+
+#postulaciones-error {
+    color: #dc3545;
+    text-align: center;
+    margin: 20px 0;
+}
+
+/* Estilos para la paginación */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.pagination button {
+    background: none;
+    border: 1px solid #ddd;
+    padding: 5px 10px;
+    margin: 0 5px;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.pagination button:hover:not(:disabled) {
+    background-color: #f0f0f0;
+}
+
+.pagination button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+#postulaciones-page-info {
+    margin: 0 10px;
+} 

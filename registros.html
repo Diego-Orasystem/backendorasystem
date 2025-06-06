@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registros de Formularios</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      color: #333;
+    }
+    h1 {
+      color: #2c3e50;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .container {
+      background-color: #f9f9f9;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      background-color: white;
+    }
+    th, td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+    th {
+      background-color: #3498db;
+      color: white;
+      font-weight: bold;
+    }
+    tr:hover {
+      background-color: #f5f5f5;
+    }
+    .status {
+      text-align: center;
+      margin: 20px 0;
+      padding: 10px;
+      border-radius: 4px;
+    }
+    .error {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+    .loading {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 200px;
+    }
+    .spinner {
+      border: 4px solid rgba(0, 0, 0, 0.1);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border-left-color: #3498db;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .message-cell {
+      max-width: 300px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .message-cell:hover {
+      white-space: normal;
+      overflow: visible;
+    }
+    .btn-refresh {
+      padding: 10px 15px;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .btn-refresh:hover {
+      background-color: #2980b9;
+    }
+    .no-records {
+      text-align: center;
+      padding: 30px;
+      font-style: italic;
+      color: #777;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Registros de Formularios de Contacto</h1>
+    
+    <div style="text-align: right; margin-bottom: 15px;">
+      <button id="refreshButton" class="btn-refresh">Actualizar datos</button>
+    </div>
+    
+    <div id="loadingIndicator" class="loading">
+      <div class="spinner"></div>
+    </div>
+    
+    <div id="tableContainer" style="display: none;">
+      <table id="registrosTable">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Email</th>
+            <th>Mensaje</th>
+            <th>Fecha de Registro</th>
+          </tr>
+        </thead>
+        <tbody id="registrosBody">
+          <!-- Los datos se cargarán aquí dinámicamente -->
+        </tbody>
+      </table>
+    </div>
+    
+    <div id="errorMessage" class="status error" style="display: none;"></div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      cargarRegistros();
+      
+      document.getElementById('refreshButton').addEventListener('click', function() {
+        cargarRegistros();
+      });
+      
+      function cargarRegistros() {
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const tableContainer = document.getElementById('tableContainer');
+        const errorMessage = document.getElementById('errorMessage');
+        const registrosBody = document.getElementById('registrosBody');
+        
+        // Mostrar indicador de carga
+        loadingIndicator.style.display = 'flex';
+        tableContainer.style.display = 'none';
+        errorMessage.style.display = 'none';
+        
+        // Hacer la petición a la API
+        fetch('http://localhost:3001/api/formularios')
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Error al obtener los datos del servidor');
+            }
+            return response.json();
+          })
+          .then(data => {
+            // Ocultar indicador de carga
+            loadingIndicator.style.display = 'none';
+            
+            if (data.success && data.data.length > 0) {
+              // Mostrar la tabla
+              tableContainer.style.display = 'block';
+              
+              // Limpiar el contenido actual
+              registrosBody.innerHTML = '';
+              
+              // Llenar la tabla con los datos
+              data.data.forEach(registro => {
+                const fecha = new Date(registro.FechaRegistro).toLocaleString();
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                  <td>${registro.Id}</td>
+                  <td>${registro.Nombre}</td>
+                  <td>${registro.Email}</td>
+                  <td class="message-cell">${registro.Mensaje}</td>
+                  <td>${fecha}</td>
+                `;
+                
+                registrosBody.appendChild(row);
+              });
+            } else {
+              // No hay registros
+              tableContainer.style.display = 'block';
+              registrosBody.innerHTML = `
+                <tr>
+                  <td colspan="5" class="no-records">No hay registros para mostrar</td>
+                </tr>
+              `;
+            }
+          })
+          .catch(error => {
+            // Mostrar mensaje de error
+            loadingIndicator.style.display = 'none';
+            errorMessage.style.display = 'block';
+            errorMessage.textContent = `Error: ${error.message}`;
+            console.error('Error al cargar los registros:', error);
+          });
+      }
+    });
+  </script>
+</body>
+</html> 

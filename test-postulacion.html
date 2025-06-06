@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prueba de Postulación</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #d32f2f;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #d32f2f;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            display: none;
+        }
+        .success {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #c8e6c9;
+        }
+        .error {
+            background-color: #ffebee;
+            color: #c62828;
+            border: 1px solid #ffcdd2;
+        }
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            max-height: 300px;
+            overflow: auto;
+        }
+        .file-info {
+            margin-top: 5px;
+            font-size: 0.8em;
+            color: #666;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #d32f2f;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <h1>Prueba de Postulación API (Almacenamiento Base64)</h1>
+    <p>Este formulario envía una solicitud POST a <code>http://localhost:3001/api/postulacion</code></p>
+    <p>El archivo PDF adjuntado se convertirá a base64 y se almacenará en la base de datos</p>
+
+    <form id="test-form">
+        <div class="form-group">
+            <label for="nombre">Nombre completo *</label>
+            <input type="text" id="nombre" name="nombre" required value="Usuario de Prueba">
+        </div>
+        
+        <div class="form-group">
+            <label for="rut">RUT *</label>
+            <input type="text" id="rut" name="rut" required value="12.345.678-5">
+        </div>
+        
+        <div class="form-group">
+            <label for="email">Correo electrónico *</label>
+            <input type="email" id="email" name="email" required value="prueba@example.com">
+        </div>
+        
+        <div class="form-group">
+            <label for="telefono">Teléfono</label>
+            <input type="tel" id="telefono" name="telefono" value="912345678">
+        </div>
+        
+        <div class="form-group">
+            <label for="cargo">Cargo a postular *</label>
+            <select id="cargo" name="cargo" required>
+                <option value="Desarrollador Full Stack">Desarrollador Full Stack</option>
+                <option value="Administrador de Bases de Datos Oracle">Administrador de Bases de Datos Oracle</option>
+                <option value="Consultor ERP Oracle E-Business Suite">Consultor ERP Oracle E-Business Suite</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="interes">¿Por qué quieres trabajar en Orasystem? *</label>
+            <textarea id="interes" name="interes" rows="4" required>Este es un mensaje de prueba para verificar el funcionamiento de la API.</textarea>
+        </div>
+        
+        <div class="form-group">
+            <label for="mensaje">Mensaje adicional</label>
+            <textarea id="mensaje" name="mensaje" rows="4">Mensaje adicional de prueba.</textarea>
+        </div>
+        
+        <div class="form-group">
+            <label for="cv">Adjuntar CV (PDF, máx 5MB)</label>
+            <input type="file" id="cv" name="cv" accept=".pdf" onchange="validateFile(this)">
+            <div class="file-info" id="file-info"></div>
+        </div>
+        
+        <div class="form-group">
+            <label>
+                <input type="checkbox" id="privacidad" name="privacidad" checked> 
+                Acepto la política de privacidad *
+            </label>
+        </div>
+        
+        <button type="submit" id="submit-btn">Enviar prueba</button>
+    </form>
+
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>Enviando datos, por favor espere...</p>
+    </div>
+
+    <div id="result">
+        <h2>Resultado:</h2>
+        <pre id="response-data"></pre>
+    </div>
+
+    <script>
+        // Validar el archivo seleccionado
+        function validateFile(input) {
+            const fileInfo = document.getElementById('file-info');
+            const submitBtn = document.getElementById('submit-btn');
+            
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                
+                // Verificar tipo de archivo
+                if (file.type !== 'application/pdf') {
+                    fileInfo.innerHTML = '<span style="color: #d32f2f;">Error: Solo se permiten archivos PDF</span>';
+                    submitBtn.disabled = true;
+                    return;
+                }
+                
+                // Verificar tamaño de archivo (máximo 5MB)
+                const maxSize = 5 * 1024 * 1024; // 5MB en bytes
+                if (file.size > maxSize) {
+                    fileInfo.innerHTML = '<span style="color: #d32f2f;">Error: El archivo excede el límite de 5MB</span>';
+                    submitBtn.disabled = true;
+                    return;
+                }
+                
+                // Archivo válido
+                const fileSize = (file.size / 1024 / 1024).toFixed(2); // Tamaño en MB con 2 decimales
+                fileInfo.innerHTML = `<span style="color: #4caf50;">Archivo seleccionado: ${file.name} (${fileSize} MB)</span>`;
+                submitBtn.disabled = false;
+            } else {
+                fileInfo.innerHTML = '';
+            }
+        }
+
+        document.getElementById('test-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const resultDiv = document.getElementById('result');
+            const responseData = document.getElementById('response-data');
+            const submitButton = document.getElementById('submit-btn');
+            const loadingDiv = document.getElementById('loading');
+            
+            // Limpiar resultados previos
+            responseData.innerHTML = '';
+            resultDiv.style.display = 'none';
+            
+            // Mostrar indicador de carga
+            loadingDiv.style.display = 'block';
+            
+            // Cambiar estado del botón
+            submitButton.disabled = true;
+            submitButton.innerText = 'Enviando...';
+            
+            // Realizar la solicitud
+            fetch('http://localhost:3001/api/postulacion', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                // Mostrar el estado de la respuesta
+                responseData.innerHTML += `Status: ${response.status} ${response.statusText}\n\n`;
+                return response.json();
+            })
+            .then(data => {
+                // Mostrar la respuesta JSON
+                responseData.innerHTML += `Respuesta:\n${JSON.stringify(data, null, 2)}`;
+                
+                // Aplicar estilo según el resultado
+                if (data.success) {
+                    resultDiv.className = 'success';
+                } else {
+                    resultDiv.className = 'error';
+                }
+                resultDiv.style.display = 'block';
+            })
+            .catch(error => {
+                responseData.innerHTML += `Error: ${error.message}`;
+                resultDiv.className = 'error';
+                resultDiv.style.display = 'block';
+            })
+            .finally(() => {
+                // Ocultar indicador de carga
+                loadingDiv.style.display = 'none';
+                
+                // Restaurar estado del botón
+                submitButton.disabled = false;
+                submitButton.innerText = 'Enviar prueba';
+            });
+        });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscador de Postulaciones</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2 {
+            color: #d32f2f;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, button {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #d32f2f;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #c8e6c9;
+        }
+        .error {
+            background-color: #ffebee;
+            color: #c62828;
+            border: 1px solid #ffcdd2;
+        }
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            max-height: 300px;
+            overflow: auto;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #d32f2f;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .postulacion-card {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .postulacion-field {
+            margin-bottom: 8px;
+        }
+        .field-label {
+            font-weight: bold;
+            color: #666;
+        }
+        .action-buttons {
+            margin-top: 15px;
+        }
+        .view-button {
+            background-color: #2196f3;
+        }
+        .download-button {
+            background-color: #4caf50;
+        }
+        #todas-postulaciones {
+            margin-top: 30px;
+        }
+        .postulaciones-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Buscador de Postulaciones</h1>
+    <p>Esta página te permite buscar postulaciones por ID y descargar los CVs almacenados en base64</p>
+
+    <div>
+        <h2>Buscar por ID</h2>
+        <div class="form-group">
+            <label for="postulacion-id">ID de la postulación:</label>
+            <input type="number" id="postulacion-id" min="1" required>
+            <button id="buscar-btn">Buscar</button>
+        </div>
+    </div>
+
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>Cargando datos, por favor espere...</p>
+    </div>
+
+    <div id="result" class="result" style="display: none;">
+        <h2>Resultado:</h2>
+        <div id="postulacion-data"></div>
+    </div>
+
+    <div id="todas-postulaciones">
+        <h2>Todas las Postulaciones</h2>
+        <button id="cargar-todos-btn">Cargar Todas las Postulaciones</button>
+        <div class="postulaciones-container" id="postulaciones-container"></div>
+    </div>
+
+    <script>
+        // Referencias a elementos del DOM
+        const postulacionIdInput = document.getElementById('postulacion-id');
+        const buscarBtn = document.getElementById('buscar-btn');
+        const loadingDiv = document.getElementById('loading');
+        const resultDiv = document.getElementById('result');
+        const postulacionDataDiv = document.getElementById('postulacion-data');
+        const cargarTodosBtn = document.getElementById('cargar-todos-btn');
+        const postulacionesContainer = document.getElementById('postulaciones-container');
+
+        // Función para buscar una postulación por ID
+        async function buscarPostulacion(id) {
+            try {
+                loadingDiv.style.display = 'block';
+                resultDiv.style.display = 'none';
+                
+                const response = await fetch(`http://localhost:3001/api/postulacion/${id}`);
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.message || 'Error al buscar la postulación');
+                }
+                
+                mostrarPostulacion(data.data);
+                resultDiv.className = 'result success';
+            } catch (error) {
+                postulacionDataDiv.innerHTML = `<p>Error: ${error.message}</p>`;
+                resultDiv.className = 'result error';
+            } finally {
+                loadingDiv.style.display = 'none';
+                resultDiv.style.display = 'block';
+            }
+        }
+
+        // Función para mostrar los datos de una postulación
+        function mostrarPostulacion(postulacion) {
+            const fechaFormateada = new Date(postulacion.FechaRegistro).toLocaleString('es-ES');
+            
+            let html = `
+                <div class="postulacion-card">
+                    <div class="postulacion-field">
+                        <span class="field-label">ID:</span> ${postulacion.Id}
+                    </div>
+                    <div class="postulacion-field">
+                        <span class="field-label">Nombre:</span> ${postulacion.Nombre}
+                    </div>
+                    <div class="postulacion-field">
+                        <span class="field-label">RUT:</span> ${postulacion.RUT}
+                    </div>
+                    <div class="postulacion-field">
+                        <span class="field-label">Email:</span> ${postulacion.Email}
+                    </div>
+                    <div class="postulacion-field">
+                        <span class="field-label">Teléfono:</span> ${postulacion.Telefono || 'No proporcionado'}
+                    </div>
+                    <div class="postulacion-field">
+                        <span class="field-label">Cargo:</span> ${postulacion.Cargo}
+                    </div>
+                    <div class="postulacion-field">
+                        <span class="field-label">Fecha:</span> ${fechaFormateada}
+                    </div>
+                    <div class="postulacion-field">
+                        <span class="field-label">CV:</span> ${postulacion.TieneCV ? postulacion.NombreArchivoOriginal : 'No adjuntó CV'}
+                    </div>
+                    <div class="action-buttons">
+                        <button class="view-button" onclick="verDetalle(${postulacion.Id})">Ver Detalle</button>
+                        ${postulacion.TieneCV ? 
+                            `<button class="download-button" onclick="descargarCV(${postulacion.Id})">Descargar CV</button>` : 
+                            ''}
+                    </div>
+                </div>
+            `;
+            
+            postulacionDataDiv.innerHTML = html;
+        }
+
+        // Función para cargar todas las postulaciones
+        async function cargarTodasPostulaciones() {
+            try {
+                loadingDiv.style.display = 'block';
+                postulacionesContainer.innerHTML = '';
+                
+                const response = await fetch('http://localhost:3001/api/postulaciones');
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.message || 'Error al cargar las postulaciones');
+                }
+                
+                if (data.data.length === 0) {
+                    postulacionesContainer.innerHTML = '<p>No hay postulaciones registradas</p>';
+                    return;
+                }
+                
+                let html = '';
+                data.data.forEach(postulacion => {
+                    const fechaFormateada = new Date(postulacion.FechaRegistro).toLocaleString('es-ES');
+                    const tieneCV = postulacion.ArchivoBase64 !== null;
+                    
+                    html += `
+                        <div class="postulacion-card">
+                            <div class="postulacion-field">
+                                <span class="field-label">ID:</span> ${postulacion.Id}
+                            </div>
+                            <div class="postulacion-field">
+                                <span class="field-label">Nombre:</span> ${postulacion.Nombre}
+                            </div>
+                            <div class="postulacion-field">
+                                <span class="field-label">Cargo:</span> ${postulacion.Cargo}
+                            </div>
+                            <div class="postulacion-field">
+                                <span class="field-label">Fecha:</span> ${fechaFormateada}
+                            </div>
+                            <div class="action-buttons">
+                                <button class="view-button" onclick="verDetalle(${postulacion.Id})">Ver Detalle</button>
+                                ${tieneCV ? 
+                                    `<button class="download-button" onclick="descargarCV(${postulacion.Id})">Descargar CV</button>` : 
+                                    ''}
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                postulacionesContainer.innerHTML = html;
+            } catch (error) {
+                postulacionesContainer.innerHTML = `<p>Error: ${error.message}</p>`;
+            } finally {
+                loadingDiv.style.display = 'none';
+            }
+        }
+
+        // Función para ver el detalle de una postulación
+        function verDetalle(id) {
+            postulacionIdInput.value = id;
+            buscarPostulacion(id);
+            // Desplazar la vista hacia arriba
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Función para descargar un CV
+        function descargarCV(id) {
+            window.open(`http://localhost:3001/api/postulacion/${id}/cv`, '_blank');
+        }
+
+        // Event listeners
+        buscarBtn.addEventListener('click', () => {
+            const id = postulacionIdInput.value;
+            if (id) {
+                buscarPostulacion(id);
+            }
+        });
+
+        cargarTodosBtn.addEventListener('click', cargarTodasPostulaciones);
+
+        // Manejar la tecla Enter en el input de ID
+        postulacionIdInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const id = postulacionIdInput.value;
+                if (id) {
+                    buscarPostulacion(id);
+                }
+            }
+        });
+    </script>
+</body>
+</html> 
