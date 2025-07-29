@@ -108,15 +108,6 @@ const handleUpload = (req, res) => {
   });
 };
 
-// Debug de variables de entorno (sin mostrar la contraseña completa)
-console.log('=== CONFIGURACIÓN DE ENTORNO ===');
-console.log(`Puerto: ${PORT}`);
-console.log(`EMAIL_USER: ${'ffigueroa@orasystem.cl'}`);
-console.log(`EMAIL_PASS configurado: Sí (valor oculto)`);
-console.log(`EMAIL_TO: ${'comercial@orasystem.cl'}`);
-console.log(`DB_SERVER: ${'securityorasystem.database.windows.net'}`);
-console.log(`DB_NAME: ${'SeguridadBD'}`);
-console.log('===============================');
 
 // Middleware
 app.use(cors({
@@ -163,6 +154,31 @@ const dbConfig = {
     port: 1433
   }
 };
+
+// Función para conectar con reintentos (para bases de datos que pueden estar pausadas)
+async function connectWithRetry(retries = 3, delay = 5000) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      console.log(`🔄 Intento de conexión ${i + 1}/${retries}...`);
+      const pool = await sql.connect(dbConfig);
+      console.log('✅ Conexión exitosa!');
+      return pool;
+    } catch (error) {
+      console.log(`❌ Intento ${i + 1} falló: ${error.message}`);
+      
+      if (error.message.includes('current state')) {
+        console.log('💤 La base de datos parece estar pausada. Reintentando...');
+      }
+      
+      if (i < retries - 1) {
+        console.log(`⏳ Esperando ${delay/1000} segundos antes del siguiente intento...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      } else {
+        throw error;
+      }
+    }
+  }
+}
 
 // Función para formatear RUT chileno
 function formatearRUT(rut) {
@@ -1350,7 +1366,8 @@ app.get('/api/postulaciones', cors(), async (req, res) => {
   console.log('📥 Recibida petición GET a /api/postulaciones');
   
   try {
-    const pool = await sql.connect(dbConfig);
+    console.log('🔗 Conectando a la base de datos...');
+    const pool = await connectWithRetry(3, 10000); // 3 intentos, 10 segundos entre cada uno
     const result = await pool.request()
       .query('SELECT * FROM [dbo].[Postulaciones] ORDER BY [FechaRegistro] DESC');
     
@@ -1363,11 +1380,25 @@ app.get('/api/postulaciones', cors(), async (req, res) => {
   } catch (error) {
     console.error('❌ Error al obtener postulaciones de la base de datos:');
     console.error(`Mensaje: ${error.message}`);
+    console.error(`Código: ${error.code}`);
+    
+    // Mensajes específicos para errores comunes
+    let userMessage = 'Error al obtener las postulaciones';
+    if (error.message.includes('current state')) {
+      userMessage = 'La base de datos está temporalmente inactiva. Intente nuevamente en unos minutos.';
+      console.error('💡 Solución: La base de datos Azure SQL está pausada. Reactívala desde el portal de Azure.');
+    } else if (error.message.includes('timeout')) {
+      userMessage = 'Tiempo de espera agotado. Intente nuevamente.';
+    } else if (error.message.includes('Login failed')) {
+      userMessage = 'Error de autenticación con la base de datos.';
+    }
     
     res.status(500).json({
       success: false,
-      message: 'Error al obtener las postulaciones',
-      error: error.message
+      message: userMessage,
+      error: error.message,
+      code: error.code,
+      timestamp: new Date().toISOString()
     });
   }
 });
