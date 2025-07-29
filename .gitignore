@@ -146,11 +146,6 @@ pids
 *.seed
 *.pid.lock
 
-# Docker
-.dockerignore
-Dockerfile*
-docker-compose*.yml
-.docker/
 
 # Database
 *.db

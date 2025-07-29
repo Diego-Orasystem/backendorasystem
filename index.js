@@ -150,8 +150,10 @@ const dbConfig = {
   password: 'Admin123.',
   options: {
     encrypt: true,
-    trustServerCertificate: false,
-    port: 1433
+    trustServerCertificate: true, // Cambiado a true para Oracle Linux
+    port: 1433,
+    connectTimeout: 30000,
+    requestTimeout: 30000
   }
 };
 
@@ -160,14 +162,41 @@ async function connectWithRetry(retries = 3, delay = 5000) {
   for (let i = 0; i < retries; i++) {
     try {
       console.log(`🔄 Intento de conexión ${i + 1}/${retries}...`);
+      console.log(`🔧 Conectando a: ${dbConfig.server}:${dbConfig.options.port}`);
+      console.log(`🗄️ Base de datos: ${dbConfig.database}`);
+      console.log(`👤 Usuario: ${dbConfig.user}`);
+      console.log(`🔐 Encriptación: ${dbConfig.options.encrypt ? 'SI' : 'NO'}`);
+      
+      const startTime = Date.now();
       const pool = await sql.connect(dbConfig);
-      console.log('✅ Conexión exitosa!');
+      const duration = Date.now() - startTime;
+      
+      console.log(`✅ Conexión exitosa en ${duration}ms!`);
       return pool;
     } catch (error) {
-      console.log(`❌ Intento ${i + 1} falló: ${error.message}`);
+      const duration = Date.now() - (Date.now() - delay);
+      console.log(`❌ Intento ${i + 1} falló después de ${duration}ms`);
+      console.log(`📝 Error: ${error.message}`);
+      console.log(`🔢 Código: ${error.code || 'No especificado'}`);
+      console.log(`🎯 Tipo: ${error.constructor.name}`);
+      console.log(`📊 Número de error: ${error.number || 'No especificado'}`);
+      console.log(`⚡ Estado: ${error.state || 'No especificado'}`);
+      console.log(`🔧 Procedimiento: ${error.procName || 'No especificado'}`);
+      console.log(`📍 Línea: ${error.lineNumber || 'No especificado'}`);
+      console.log(`🏠 Servidor original: ${error.serverName || 'No especificado'}`);
+      
+      if (error.originalError) {
+        console.log(`🔍 Error original:`, error.originalError);
+      }
       
       if (error.message.includes('current state')) {
-        console.log('💤 La base de datos parece estar pausada. Reintentando...');
+        console.log('💤 Posible causa: Base de datos pausada o en mantenimiento');
+      } else if (error.message.includes('timeout')) {
+        console.log('⏰ Posible causa: Timeout de red o firewall');
+      } else if (error.message.includes('ENOTFOUND') || error.message.includes('ECONNREFUSED')) {
+        console.log('🌐 Posible causa: Problema de DNS o conectividad de red');
+      } else if (error.message.includes('Login failed')) {
+        console.log('🔑 Posible causa: Credenciales incorrectas');
       }
       
       if (i < retries - 1) {
