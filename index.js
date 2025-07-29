@@ -153,10 +153,10 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Configuración de la base de datos SQL Server
 const dbConfig = {
-  server: 'seguridadorasystem.database.windows.net',
-  database: 'SeguridadBD',
-  user: 'orasystem',
-  password: 'admin123.',
+  server: 'securityorasystem.database.windows.net',
+  database: 'OrasystemSecurity',
+  user: 'administrador',
+  password: 'Admin123.',
   options: {
     encrypt: true,
     trustServerCertificate: false,
