@@ -61,7 +61,7 @@ async function testPostulacion() {
     const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 segundos de timeout
     
     try {
-      const response = await fetch('https://backend-orasystem-cyo2.vercel.app/api/postulacion', {
+              const response = await fetch('http://localhost:3001/api/postulacion', {
         method: 'POST',
         body: form,
         headers: form.getHeaders(),

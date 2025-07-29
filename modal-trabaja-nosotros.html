@@ -158,7 +158,7 @@ document.getElementById('trabaja-con-nosotros-form').addEventListener('submit', 
     // Convertir checkbox a booleano
     formData.set('privacidad', document.getElementById('privacidad').checked);
     
-    fetch('https://backend-orasystem-cyo2.vercel.app/api/postulacion', {
+                        fetch('http://localhost:3001/api/postulacion', {
         method: 'POST',
         body: formData
     })

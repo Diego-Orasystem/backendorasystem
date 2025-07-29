@@ -205,7 +205,7 @@ document.addEventListener('DOMContentLoaded', function() {
         formData.set('privacidad', document.getElementById('privacidad').checked);
         
         // Enviar datos al servidor
-        fetch('https://backend-orasystem-cyo2.vercel.app/api/postulacion', {
+                    fetch('http://localhost:3001/api/postulacion', {
             method: 'POST',
             body: formData
         })

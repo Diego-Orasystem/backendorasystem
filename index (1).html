@@ -277,7 +277,7 @@
                 loadingElement.style.display = 'flex';
                 errorElement.textContent = '';
                 
-                fetch('https://backend-orasystem-cyo2.vercel.app/api/postulaciones')
+                fetch('http://localhost:3001/api/postulaciones')
                     .then(response => response.json())
                     .then(data => {
                         loadingElement.style.display = 'none';
@@ -378,7 +378,7 @@
                     cvHtml = `
                         <p>
                             <strong>CV:</strong> 
-                            <a href="https://backend-orasystem-cyo2.vercel.app/${postulacion.RutaCV}" target="_blank" class="cv-link">
+                            <a href="http://localhost:3001/${postulacion.RutaCV}" target="_blank" class="cv-link">
                                 ${postulacion.NombreArchivoOriginal}
                             </a>
                         </p>

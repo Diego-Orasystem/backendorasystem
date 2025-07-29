@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         try {
             // Petición a la API
-            const response = await fetch('https://backend-orasystem-cyo2.vercel.app/api/formularios');
+            const response = await fetch('https://backendorasystem-fkgwbygpdyfpftbs.canadacentral-01.azurewebsites.net/api/formularios');
             const result = await response.json();
             
             if (!result.success) {
@@ -80,6 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
             loadingElement.style.display = 'none';
         }
     };
+
     
     // Generar encabezados de tabla
     const generateTableHeaders = () => {
