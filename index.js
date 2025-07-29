@@ -8,6 +8,14 @@ const fs = require('fs');
 const cron = require('node-cron');
 const ExcelJS = require('exceljs');
 
+// Log de inicialización de módulos
+console.log('📦 Módulos cargados exitosamente:');
+console.log('   ✅ Express, CORS, Nodemailer');
+console.log('   ✅ MSSQL, Multer, Path, FS');
+console.log('   ✅ Node-cron, ExcelJS');
+console.log('🔧 Versión de Node.js:', process.version);
+console.log('💻 Plataforma:', process.platform);
+
 const app = express();
 // Puerto para Vercel (usa process.env.PORT si está disponible, de lo contrario usa 3001)
 const PORT = process.env.PORT || 3001;
@@ -163,6 +171,64 @@ const dbConfig = {
     port: 1433
   }
 };
+
+// Log detallado de la configuración de la base de datos
+console.log('🔧 Configuración de DB cargada:', {
+  server: dbConfig.server,
+  database: dbConfig.database,
+  user: dbConfig.user,
+  password: '***' + dbConfig.password.slice(-2), // Solo mostrar los últimos 2 caracteres
+  port: dbConfig.options.port,
+  encrypt: dbConfig.options.encrypt,
+  trustServerCertificate: dbConfig.options.trustServerCertificate
+});
+
+// Función para probar la conexión a la base de datos
+async function testDatabaseConnection() {
+  console.log('');
+  console.log('🔍 PROBANDO CONEXIÓN A LA BASE DE DATOS...');
+  console.log('═══════════════════════════════════════════════');
+  
+  try {
+    console.log('⏳ Intentando conectar...');
+    const pool = await sql.connect(dbConfig);
+    console.log('✅ Conexión establecida exitosamente');
+    
+    console.log('🔍 Ejecutando consulta de prueba...');
+    const result = await pool.request().query('SELECT 1 as TestConnection, GETDATE() as CurrentTime');
+    console.log('✅ Consulta de prueba exitosa:', result.recordset[0]);
+    
+    await pool.close();
+    console.log('🔐 Conexión cerrada correctamente');
+    console.log('═══════════════════════════════════════════════');
+    console.log('✅ BASE DE DATOS DISPONIBLE Y FUNCIONANDO');
+    console.log('');
+    
+  } catch (error) {
+    console.error('❌ ERROR DE CONEXIÓN A LA BASE DE DATOS:');
+    console.error('═══════════════════════════════════════════════');
+    console.error('📝 Mensaje:', error.message);
+    console.error('🔢 Código:', error.code);
+    console.error('🎯 Tipo:', error.constructor.name);
+    console.error('🔧 Configuración usada:', {
+      server: dbConfig.server,
+      database: dbConfig.database,
+      user: dbConfig.user,
+      port: dbConfig.options.port,
+      encrypt: dbConfig.options.encrypt
+    });
+    console.error('💡 Posibles causas:');
+    console.error('   - Servidor de base de datos no disponible');
+    console.error('   - Credenciales incorrectas');
+    console.error('   - Firewall bloqueando la conexión');
+    console.error('   - Base de datos pausada/no disponible');
+    console.error('═══════════════════════════════════════════════');
+    console.error('');
+  }
+}
+
+// Ejecutar test de conexión al cargar el módulo
+testDatabaseConnection();
 
 // Función para formatear RUT chileno
 function formatearRUT(rut) {
@@ -1348,26 +1414,45 @@ app.get('/api/postulaciones', cors(), async (req, res) => {
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
   
   console.log('📥 Recibida petición GET a /api/postulaciones');
+  console.log('🔗 Intentando conectar a la base de datos...');
+  console.log('🏠 Servidor:', dbConfig.server);
+  console.log('🗄️ Base de datos:', dbConfig.database);
   
   try {
+    console.log('⏳ Estableciendo conexión con SQL Server...');
     const pool = await sql.connect(dbConfig);
+    console.log('✅ Conexión establecida exitosamente');
+    
+    console.log('🔍 Ejecutando consulta SQL...');
     const result = await pool.request()
       .query('SELECT * FROM [dbo].[Postulaciones] ORDER BY [FechaRegistro] DESC');
     
-    console.log(`✅ Recuperadas ${result.recordset.length} postulaciones de la base de datos`);
+    console.log(`✅ Consulta exitosa. Recuperadas ${result.recordset.length} postulaciones de la base de datos`);
     
     res.status(200).json({
       success: true,
       data: result.recordset
     });
   } catch (error) {
-    console.error('❌ Error al obtener postulaciones de la base de datos:');
-    console.error(`Mensaje: ${error.message}`);
+    console.error('❌ ERROR DETALLADO EN POSTULACIONES:');
+    console.error('🔧 Configuración usada:', {
+      server: dbConfig.server,
+      database: dbConfig.database,
+      user: dbConfig.user,
+      port: dbConfig.options.port,
+      encrypt: dbConfig.options.encrypt
+    });
+    console.error('📝 Mensaje de error:', error.message);
+    console.error('🔢 Código de error:', error.code);
+    console.error('🎯 Tipo de error:', error.constructor.name);
+    console.error('📍 Stack trace:', error.stack);
     
     res.status(500).json({
       success: false,
       message: 'Error al obtener las postulaciones',
-      error: error.message
+      error: error.message,
+      errorCode: error.code,
+      errorType: error.constructor.name
     });
   }
 });
@@ -3105,12 +3190,37 @@ app.get('/api/formulario-evaluacion/:id', cors(), async (req, res) => {
 
 // Iniciar el servidor solo si se ejecuta directamente (no en Azure)
 if (require.main === module) {
+  console.log('🔄 Iniciando servidor OraSystem Backend...');
+  console.log('⚙️ Configuración del servidor:');
+  console.log(`   📍 Puerto: ${PORT}`);
+  console.log(`   🌍 Entorno: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`   🔒 CORS habilitado para: *`);
+  
   const server = app.listen(PORT, () => {
-    console.log(`🚀 Servidor Express iniciado en puerto ${PORT}`);
-    console.log(`📧 Correo configurado para: servicio@orasystem.cl`);
-    console.log(`🗄️ Base de datos: ${dbConfig.database} en ${dbConfig.server}`);
+    console.log('');
+    console.log('✅ ¡SERVIDOR INICIADO EXITOSAMENTE!');
+    console.log('═══════════════════════════════════════');
+    console.log(`🚀 Servidor Express ejecutándose en puerto ${PORT}`);
+    console.log(`🌐 URL local: http://localhost:${PORT}`);
+    console.log(`📧 Email configurado para: servicio@orasystem.cl`);
+    console.log(`🗄️ Base de datos: ${dbConfig.database}`);
+    console.log(`🏠 Servidor DB: ${dbConfig.server}`);
+    console.log(`🔐 Encriptación: ${dbConfig.options.encrypt ? 'Habilitada' : 'Deshabilitada'}`);
+    console.log('═══════════════════════════════════════');
+    console.log('📋 Endpoints disponibles:');
+    console.log('   GET  /api/postulaciones');
+    console.log('   POST /api/postulacion');
+    console.log('   GET  /health');
+    console.log('   Y más...');
+    console.log('');
   }).on('error', (err) => {
-    console.error('Error al iniciar el servidor:', err.message);
+    console.error('❌ ERROR AL INICIAR EL SERVIDOR:');
+    console.error('═══════════════════════════════════════');
+    console.error('📝 Mensaje:', err.message);
+    console.error('🔢 Código:', err.code);
+    console.error('📍 Puerto intentado:', PORT);
+    console.error('💡 Sugerencia: Verifica que el puerto no esté en uso');
+    console.error('═══════════════════════════════════════');
   });
 }
 
