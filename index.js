@@ -3153,6 +3153,63 @@ app.get('/api/formulario-evaluacion/:id', cors(), async (req, res) => {
   }
 });
 
+// Ruta de health check para Docker con ping real a la DB
+app.get('/health', async (req, res) => {
+  const healthStatus = {
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV || 'development',
+    database: {
+      status: 'unknown',
+      responseTime: null,
+      error: null
+    }
+  };
+
+  try {
+    console.log('🔍 Health check: probando conexión a la base de datos...');
+    const startTime = Date.now();
+    
+    // Hacer ping real a la base de datos
+    const pool = await connectWithRetry(1, 1000); // 1 intento, 1 segundo timeout
+    const result = await pool.request().query('SELECT 1 as HealthCheck, GETDATE() as ServerTime');
+    
+    const responseTime = Date.now() - startTime;
+    
+    healthStatus.database = {
+      status: 'connected',
+      responseTime: `${responseTime}ms`,
+      serverTime: result.recordset[0].ServerTime,
+      server: dbConfig.server,
+      database: dbConfig.database
+    };
+    
+    console.log(`✅ Health check DB: OK (${responseTime}ms)`);
+    
+    // Cerrar la conexión del health check
+    await pool.close();
+    
+    res.status(200).json(healthStatus);
+    
+  } catch (error) {
+    console.error('❌ Health check DB falló:', error.message);
+    
+    healthStatus.status = 'unhealthy';
+    healthStatus.database = {
+      status: 'disconnected',
+      responseTime: null,
+      error: error.message,
+      code: error.code || 'UNKNOWN',
+      server: dbConfig.server,
+      database: dbConfig.database
+    };
+    
+    // Retornar 503 Service Unavailable si la DB no está disponible
+    res.status(503).json(healthStatus);
+  }
+});
+
 // Iniciar el servidor solo si se ejecuta directamente (no en Azure)
 if (require.main === module) {
   const server = app.listen(PORT, () => {
