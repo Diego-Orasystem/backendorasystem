@@ -35,4 +35,4 @@ RUN chown -R nextjs:nodejs /app
 USER nextjs
 
 # Start the application
-CMD ["npm", "start"] 
+CMD ["node", "index.js"] 

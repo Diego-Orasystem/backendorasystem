@@ -60,4 +60,13 @@ build
 
 # Temporary files
 tmp
-temp 
+temp
+
+# Test files
+test-*.js
+test-*.html
+*test*.html
+
+# Backup files
+*.backup
+*(1)* 
