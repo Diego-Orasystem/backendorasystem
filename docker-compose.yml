@@ -9,13 +9,13 @@ services:
       - NODE_ENV=production
       - PORT=3001
       # Database configuration - estas variables se pueden usar en lugar de hardcoding
-      - DB_SERVER=securityorasystem.database.windows.net
-      - DB_DATABASE=OrasystemSecurity
-      - DB_USER=administrador
-      - DB_PASSWORD=Admin123.
+      - DB_SERVER=orasystem.database.windows.net
+      - DB_DATABASE=seguridadorasysbackup
+      - DB_USER=adminorasystem
+      - DB_PASSWORD=Orasystem.2025
       - DB_PORT=1433
       - DB_ENCRYPT=true
-      - DB_TRUST_SERVER_CERTIFICATE=true
+      - DB_TRUST_SERVER_CERTIFICATE=false
     volumes:
       # Mount uploads directory for persistent file storage
       - ./uploads:/app/uploads

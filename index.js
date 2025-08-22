@@ -8,6 +8,11 @@ const fs = require('fs');
 const cron = require('node-cron');
 const ExcelJS = require('exceljs');
 
+// DEBUG: Log único para identificar que se está ejecutando el archivo correcto
+console.log('🔥🔥🔥 ARCHIVO CORRECTO CARGADO - TIMESTAMP:', new Date().toISOString());
+console.log('🔥🔥🔥 ESTE ES EL index.js ACTUALIZADO');
+console.log('🔥🔥🔥 SI VES LOGS INCORRECTOS, NO VIENEN DE ESTE ARCHIVO');
+
 const app = express();
 // Puerto para Vercel (usa process.env.PORT si está disponible, de lo contrario usa 3001)
 const PORT = process.env.PORT || 3001;
@@ -144,13 +149,13 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Configuración de la base de datos SQL Server
 const dbConfig = {
-  server: 'securityorasystem.database.windows.net',
-  database: 'OrasystemSecurity',
-  user: 'administrador',
-  password: 'Admin123.',
+  server: 'orasystem.database.windows.net',
+  database: 'seguridadorasysbackup',
+  user: 'adminorasystem',
+  password: 'Orasystem.2025',
   options: {
     encrypt: true,
-    trustServerCertificate: true, // Cambiado a true para Oracle Linux
+    trustServerCertificate: false,
     port: 1433,
     connectTimeout: 30000,
     requestTimeout: 30000
