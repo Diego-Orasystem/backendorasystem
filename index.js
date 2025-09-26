@@ -146,10 +146,9 @@ app.use(express.urlencoded({
 }));
 app.use(express.static('.')); // Sirve archivos estáticos desde la raíz
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
 // Configuración de la base de datos SQL Server
 const dbConfig = {
-  server: 'orasystem.database.windows.net',
+  server: 'orasystembackend.database.windows.net',
   database: 'seguridadorasysbackup',
   user: 'adminorasystem',
   password: 'Orasystem.2025',
