@@ -896,6 +896,9 @@ app.post('/api/formulario', async (req, res) => {
       if (v === false) return false;
       return null;
     })(req.body.esPracticante ?? req.body.practicante);
+    const esPracticanteTexto = (typeof esPracticanteNorm === 'undefined' || esPracticanteNorm === null)
+      ? 'No indicado'
+      : (esPracticanteNorm ? 'Sí' : 'No');
 
     // Plantilla HTML para el correo
     const htmlTemplate = `
@@ -1343,7 +1346,7 @@ app.post('/api/postulacion', cors(), async function(req, res) {
             </div>
             <div class="field">
               <p class="label">Postulación de practicante:</p>
-              <p class="value">${esPracticanteNorm === null ? 'No indicado' : (esPracticanteNorm ? 'Sí' : 'No')}</p>
+              <p class="value">${esPracticanteTexto}</p>
             </div>
             ${mensaje ? `
             <div class="field">
