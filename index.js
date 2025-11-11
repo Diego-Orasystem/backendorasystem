@@ -772,6 +772,7 @@ const connectToDatabase = async () => {
           [Mensaje] NVARCHAR(MAX) NULL,
           [RutaCV] NVARCHAR(255) NULL,
           [NombreArchivoOriginal] NVARCHAR(255) NULL,
+          [EsPracticante] BIT NULL,
           [FechaRegistro] DATETIME DEFAULT GETDATE()
         )
         PRINT 'Tabla Postulaciones creada correctamente'
@@ -885,6 +886,17 @@ app.post('/api/formulario', async (req, res) => {
       console.error('Continuando con el envío de correo...');
     }
     
+    // Normalizar valor de practicante para correo
+    const esPracticanteNorm = (function(v) {
+      if (v === undefined || v === null) return null;
+      const s = String(v).toLowerCase().trim();
+      if (s === 'on' || s === 'true' || s === '1' || s === 'si' || s === 'sí' || s === 'yes') return true;
+      if (s === 'off' || s === 'false' || s === '0' || s === 'no') return false;
+      if (v === true) return true;
+      if (v === false) return false;
+      return null;
+    })(req.body.esPracticante ?? req.body.practicante);
+
     // Plantilla HTML para el correo
     const htmlTemplate = `
       <!DOCTYPE html>
@@ -1169,6 +1181,19 @@ app.post('/api/postulacion', cors(), async function(req, res) {
         BEGIN
           PRINT 'Las columnas ArchivoBase64 y TipoArchivo ya existen'
         END
+
+        IF NOT EXISTS (
+          SELECT * FROM sys.columns 
+          WHERE object_id = OBJECT_ID(N'[dbo].[Postulaciones]') AND name = 'EsPracticante'
+        )
+        BEGIN
+          ALTER TABLE [dbo].[Postulaciones] ADD [EsPracticante] BIT NULL;
+          PRINT 'Columna EsPracticante agregada correctamente'
+        END
+        ELSE
+        BEGIN
+          PRINT 'La columna EsPracticante ya existe'
+        END
       `);
       
       const pool = await sql.connect(dbConfig);
@@ -1183,11 +1208,21 @@ app.post('/api/postulacion', cors(), async function(req, res) {
         .input('archivoBase64', sql.NVarChar, archivoBase64)
         .input('nombreArchivoOriginal', sql.NVarChar, nombreArchivoOriginal)
         .input('tipoArchivo', sql.NVarChar, tipoArchivo)
+        .input('esPracticante', sql.Bit, (function(v) {
+          if (v === undefined || v === null) return null;
+          const s = String(v).toLowerCase().trim();
+          if (s === 'on' || s === 'true' || s === '1' || s === 'si' || s === 'sí' || s === 'yes') return true;
+          if (s === 'off' || s === 'false' || s === '0' || s === 'no') return false;
+          // Si viene como boolean ya
+          if (v === true) return true;
+          if (v === false) return false;
+          return null;
+        })(req.body.esPracticante ?? req.body.practicante))
         .query(`
           INSERT INTO [dbo].[Postulaciones] 
-            ([Nombre], [RUT], [Email], [Telefono], [Cargo], [Interes], [Mensaje], [ArchivoBase64], [NombreArchivoOriginal], [TipoArchivo]) 
+            ([Nombre], [RUT], [Email], [Telefono], [Cargo], [Interes], [Mensaje], [ArchivoBase64], [NombreArchivoOriginal], [TipoArchivo], [EsPracticante]) 
           VALUES 
-            (@nombre, @rut, @email, @telefono, @cargo, @interes, @mensaje, @archivoBase64, @nombreArchivoOriginal, @tipoArchivo);
+            (@nombre, @rut, @email, @telefono, @cargo, @interes, @mensaje, @archivoBase64, @nombreArchivoOriginal, @tipoArchivo, @esPracticante);
           SELECT SCOPE_IDENTITY() AS id;
         `);
       
@@ -1305,6 +1340,10 @@ app.post('/api/postulacion', cors(), async function(req, res) {
             <div class="field">
               <p class="label">Interés en Orasystem:</p>
               <p class="value">${interes}</p>
+            </div>
+            <div class="field">
+              <p class="label">Postulación de practicante:</p>
+              <p class="value">${esPracticanteNorm === null ? 'No indicado' : (esPracticanteNorm ? 'Sí' : 'No')}</p>
             </div>
             ${mensaje ? `
             <div class="field">
@@ -1525,7 +1564,7 @@ app.get('/api/postulacion/:id', cors(), async (req, res) => {
       .query(`
         SELECT 
           Id, Nombre, RUT, Email, Telefono, Cargo, 
-          Interes, Mensaje, NombreArchivoOriginal, FechaRegistro, 
+          Interes, Mensaje, NombreArchivoOriginal, FechaRegistro, [EsPracticante],
           CASE WHEN ArchivoBase64 IS NULL THEN 0 ELSE 1 END AS TieneCV,
           AreaDeseada, TipoArchivo, PretensionRenta, Conocimientos, Contactado,
           FechaContactoUltimo, CertificacionPendiente, ExamenPsicologico, 
