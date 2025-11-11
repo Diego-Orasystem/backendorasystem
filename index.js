@@ -1237,6 +1237,18 @@ app.post('/api/postulacion', cors(), async function(req, res) {
       console.error('Continuando con el envío de correo...');
     }
     
+    // Normalizar valor de practicante para correo (definido antes de usar en la plantilla)
+    const esPracticanteNorm = (function(v) {
+      if (v === undefined || v === null) return null;
+      const s = String(v).toLowerCase().trim();
+      if (s === 'on' || s === 'true' || s === '1' || s === 'si' || s === 'sí' || s === 'yes') return true;
+      if (s === 'off' || s === 'false' || s === '0' || s === 'no') return false;
+      if (v === true) return true;
+      if (v === false) return false;
+      return null;
+    })(req.body.esPracticante ?? req.body.practicante);
+    const esPracticanteTexto = (esPracticanteNorm === null) ? 'No indicado' : (esPracticanteNorm ? 'Sí' : 'No');
+
     // Plantilla HTML para el correo
     const htmlTemplate = `
       <!DOCTYPE html>
