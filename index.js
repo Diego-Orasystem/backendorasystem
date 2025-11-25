@@ -84,6 +84,56 @@ const upload = multer({
   fileFilter: fileFilter
 }).single('cv');
 
+// Función auxiliar para codificar el nombre de archivo según RFC 5987
+// Esto permite manejar caracteres no-ASCII en el header Content-Disposition
+// Funciona correctamente incluso con nombres que ya fueron guardados con caracteres especiales
+const encodeContentDisposition = (filename) => {
+  // Validar que el nombre no sea null o undefined
+  if (!filename || typeof filename !== 'string') {
+    filename = 'documento.pdf';
+  }
+  
+  // Limpiar el nombre para el fallback ASCII
+  // Reemplazar caracteres no-ASCII y caracteres problemáticos para nombres de archivo
+  let asciiFilename = filename
+    .replace(/[^\x00-\x7F]/g, '_')  // Reemplazar caracteres no-ASCII
+    .replace(/[<>:"/\\|?*\x00-\x1F]/g, '_')  // Reemplazar caracteres inválidos para nombres de archivo
+    .replace(/\s+/g, '_')  // Reemplazar espacios múltiples
+    .replace(/_{2,}/g, '_')  // Reemplazar guiones bajos múltiples
+    .replace(/^_+|_+$/g, '');  // Eliminar guiones bajos al inicio y final
+  
+  // Si después de limpiar queda vacío, usar un nombre por defecto
+  if (!asciiFilename || asciiFilename.length === 0) {
+    asciiFilename = 'documento.pdf';
+  }
+  
+  // Asegurar que tenga extensión
+  if (!asciiFilename.includes('.')) {
+    const originalExt = filename.match(/\.[^.]+$/);
+    asciiFilename += originalExt ? originalExt[0] : '.pdf';
+  }
+  
+  // Limitar longitud del nombre fallback (máximo 200 caracteres)
+  if (asciiFilename.length > 200) {
+    const ext = asciiFilename.match(/\.[^.]+$/);
+    const extStr = ext ? ext[0] : '';
+    asciiFilename = asciiFilename.substring(0, 200 - extStr.length) + extStr;
+  }
+  
+  // Codificar el nombre original en UTF-8 según RFC 5987
+  // Manejar errores de codificación
+  let encodedFilename;
+  try {
+    encodedFilename = encodeURIComponent(filename);
+  } catch (error) {
+    // Si hay error al codificar, usar el nombre ASCII
+    encodedFilename = encodeURIComponent(asciiFilename);
+  }
+  
+  // Retornar el formato RFC 5987: filename="fallback" y filename*=UTF-8''encoded
+  return `attachment; filename="${asciiFilename}"; filename*=UTF-8''${encodedFilename}`;
+};
+
 // Función auxiliar para manejar la carga de archivos con mejor manejo de errores
 const handleUpload = (req, res) => {
   return new Promise((resolve, reject) => {
@@ -1535,7 +1585,8 @@ app.get('/api/postulacion/:id/cv', cors(), async (req, res) => {
     
     // Configurar cabeceras para la descarga del archivo
     res.setHeader('Content-Type', postulacion.TipoArchivo || 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="${postulacion.NombreArchivoOriginal}"`);
+    // Usar codificación RFC 5987 para manejar caracteres no-ASCII en el nombre del archivo
+    res.setHeader('Content-Disposition', encodeContentDisposition(postulacion.NombreArchivoOriginal));
     
     // Decodificar y enviar el archivo
     const buffer = Buffer.from(postulacion.ArchivoBase64, 'base64');
